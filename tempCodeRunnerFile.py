@@ -1,0 +1,2 @@
+Categories():
+    print(category)
