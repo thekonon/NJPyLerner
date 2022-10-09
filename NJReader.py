@@ -19,7 +19,7 @@ class NJReader:
     def printNJReader(self):
         print(self.excel)
     
-myReader = NJReader()
-print(myReader.getPivotList()[1])
-myReader.printNJReader()
+# myReader = NJReader()
+# print(myReader.getPivotList()[1])
+# myReader.printNJReader()
 # for i in range(myReader)

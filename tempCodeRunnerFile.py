@@ -1,2 +1,1 @@
-Categories():
-    print(category)
+r
