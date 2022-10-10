@@ -1,17 +1,81 @@
-from cmath import nan
-import math
-import time
-from tkinter import E
 from NJReader import NJReader
 import numpy as np
 import os
+import time
 class NJQuizz:
     def __init__(self):
         self.myReader = NJReader()
-        self.setSelectedCategory('verbs')
+        
+        #config variables
+        self.setSelectWordsOnlyFromCurrentCategory(1)
+        self.setFakeWordsCount(5)
+        self.setQuizzLength(3)
+        self.setSelectedCategory('')       #just in case no category is selected
+        
+        
     def quizzStart(self):
+        #Starting the quizz
         self.quizzReset()
         self.quizz_running = 1
+        self.userSelectCategory()       #user category of quizz selection
+        self.userQuizParametersSelect() #Quizz config settings - from user
+        self.setReducedExcel()          #setting reduced excel - table with only right category
+        
+        #setting up vars for quizz - random permutation of selected category
+        self.words_order = np.random.permutation(np.array(range(self.reduced_excel.shape[0]-1)))
+        self.words_order = self.words_order[:self.quizz_length] #cutting the list
+        print(self.words_order)
+        
+        for index in self.words_order:
+            self.current_czech_word = self.reduced_excel.Ceske_slovo.iloc[index].replace('\xa0',' ')
+            self.current_german_word = self.reduced_excel.Nemecke_slovo.iloc[index].replace('\xa0',' ')
+            self.select_right_word_from_list = [self.current_german_word]
+                   
+            #Random words picking
+            if self.select_words_only_from_current_category:
+                for fake_word in np.random.permutation(self.reduced_excel.Nemecke_slovo.to_numpy())[:self.fake_words_count]:
+                    self.select_right_word_from_list.append(fake_word)
+            else:
+                for fake_word in np.random.permutation(self.myReader.excel.Nemecke_slovo.to_numpy())[:self.fake_words_count]:
+                    self.select_right_word_from_list.append(fake_word)
+                    
+            #List scramble
+            self.quizzCurrentWordPickingDialog()
+            self.select_right_word_from_list = [iter.replace('\xa0',' ') for iter in self.select_right_word_from_list]
+            self.select_right_word_from_list = np.unique(np.random.permutation(self.select_right_word_from_list)).tolist()
+            self.quizzCurrentWordPickingDialog()
+            self.quizzCurrentWordPickingDialog()
+            self.word_is_picking = 1
+            self.userSelectRightWords()
+            if self.select_right_word_from_list[self.picked_answer] == self.current_german_word:
+                print("Gratulace!")
+                self.score += 1
+                time.sleep(1)
+            else:
+                print("Nahh right was: ", self.current_german_word)
+                time.sleep(1)
+        os.system('cls')
+        self.printScore()
+        if self.score == self.quizz_length:
+            print("Gratulace! plné score")
+    def quizzReset(self):
+        #state variables
+        self.quizz_running = 0
+        self.category_is_selected = 0
+        self.word_is_picking = 0
+        self.score = 0
+        
+    def quizzStartingDialog(self):
+        print(".___________________.")
+        print("|Starting the quizz |")
+        print("*"+chr(8254)*19+"*")
+    def quizzCurrentWordPickingDialog(self):
+        os.system('cls')
+        self.printScore()
+        print("Přelož: ", self.current_czech_word)
+        for i in range(len(self.select_right_word_from_list)):
+            print(i+1, ": ", self.select_right_word_from_list[i])
+    def userSelectCategory(self):
         while not self.category_is_selected:
             os.system('cls')
             self.quizzStartingDialog()
@@ -22,34 +86,68 @@ class NJQuizz:
                 category_counter+=1
             try:
                 selected_category = int(input("Zvolená kategorie: "))-1 # -1 pro shift pole
-                if selected_category < len(self.getCategories()):
+                if selected_category < len(self.getCategories()) and selected_category >= 0:
                     self.setSelectedCategory(self.getCategories()[int(selected_category)])
                     self.category_is_selected = 1
                 else:
-                    print("Příliš velké číslo")
-                    time.sleep(0.3)
+                    print("Out of range")
+                    time.sleep(0.5)
             except:
                 print("Neplatný vstup")
                 time.sleep(0.3)
-                
-        print(self.getSelectedCategory())
-        
-        
-    def quizzReset(self):
-        self.quizz_running = 0
-        self.category_is_selected = 0
-        self.word_is_picking = 0
-        self.score = 0
-    def quizzStartingDialog(self):
-        print(".___________________.")
-        print("|Starting the quizz |")
-        print("|___________________|")
-    
-    def getReducedExcel(self):
+    def userQuizParametersSelect(self):
+        self.quizz_length_is_picking = 1
+        while self.quizz_length_is_picking:
+            try:
+                answer = int(input("Zvol délku quizu: "))
+                if answer >= 0:
+                    self.setQuizzLength(answer)
+                    self.quizz_length_is_picking = 0
+                else:
+                    print("Out of range")
+                    time.sleep(0.5)
+                    self.quizzCurrentWordPickingDialog()
+            except:
+                print("Neplatný vstup")
+                time.sleep(0.5)
+                self.quizzCurrentWordPickingDialog()
+        self.fake_words_count_is_picking = 1
+        while self.fake_words_count_is_picking:
+            try:
+                answer = int(input("Počet fake slov: "))-1
+                if answer >= 2:
+                    self.setFakeWordsCount(answer)
+                    self.fake_words_count_is_picking = 0
+                else:
+                    print("Out of range")
+                    time.sleep(0.5)
+                    self.quizzCurrentWordPickingDialog()
+            except:
+                print("Neplatný vstup")
+                time.sleep(0.5)
+                self.quizzCurrentWordPickingDialog()
+    def userSelectRightWords(self):
+        while self.word_is_picking:
+            try:
+                answer = int(input("Zvolená odpověď: "))-1 # -1 pro shift pole
+                if answer <= self.fake_words_count and answer >= 0:
+                    self.picked_answer = answer
+                    self.word_is_picking = 0
+                else:
+                    print("Out of range")
+                    time.sleep(0.5)
+                    self.quizzCurrentWordPickingDialog()
+            except:
+                print("Neplatný vstup")
+                time.sleep(0.5)
+                self.quizzCurrentWordPickingDialog()
+    def printScore(self):
+        print("Aktuální score: ", self.score, " / ", self.quizz_length)
+    def setReducedExcel(self):
         if self.getSelectedCategory() == '':
-            return self.myReader.excel
+            self.reduced_excel = self.myReader.excel
         else:    
-            return self.myReader.excel.query('Kategorie == @self.getSelectedCategory()')
+            self.reduced_excel = self.myReader.excel.query('Kategorie == @self.getSelectedCategory()')
     def getCategories(self):
         #Gets all unique categories - nan filtered
         out = []
@@ -57,12 +155,18 @@ class NJQuizz:
             if type(att)==str:
                 out.append(att)        
         return out
+    #Config methods
     def setSelectedCategory(self, category):
-        self.selected_category = category
+        self.selected_category: str = category
     def getSelectedCategory(self):
         return self.selected_category
     def setFakeWordsCount(self, count):
-        self.fake_words_count = count
+        self.fake_words_count: int = count
+    def setSelectWordsOnlyFromCurrentCategory(self, boo):
+        self.select_words_only_from_current_category: bool = boo
+    def setQuizzLength(self, length):
+        self.quizz_length: int = length
+    
 
 Quizz = NJQuizz()
 Quizz.quizzStart()
