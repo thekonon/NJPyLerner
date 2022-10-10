@@ -3,6 +3,8 @@ import numpy as np
 import os
 import time
 import keyboard
+
+#notice, that many methods can be easily implemetned with main gui app
 class NJQuizz:
     #Quizz control
     def __init__(self):
@@ -70,7 +72,7 @@ class NJQuizz:
         self.word_is_picking = 0
         self.score = 0    
     
-    #User prompts
+    #User prompts - those data could be aquired from gui
     def userSelectCategory(self):
         while not self.category_is_selected:
             os.system('cls')
@@ -174,7 +176,7 @@ class NJQuizz:
     def getCurrentTotalWordsCount(self):
         return self.reduced_excel.shape[0]
     
-    #Config methods
+    #Config methods - those data can be set with gui
     def setSelectedCategory(self, category):
         self.selected_category: str = category
     def getSelectedCategory(self):
