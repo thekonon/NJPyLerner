@@ -18,8 +18,8 @@ class NJQuizz:
         self.quizzReset()
         self.quizz_running = 1
         #Those can be uncommented - default values from __init__ are used
-        # self.userSelectCategory()       #user category of quizz selection
-        # self.userQuizParametersSelect() #Quizz config settings - from user
+        self.userSelectCategory()       #user category of quizz selection
+        self.userQuizParametersSelect() #Quizz config settings - from user
         
         self.setReducedExcel()          #setting reduced excel - table with only right category
         
