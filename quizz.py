@@ -4,15 +4,14 @@ import os
 import time
 class NJQuizz:
     def __init__(self):
-        self.myReader = NJReader()
+        #Load all words from excel
+        self.loadExcel()
         
-        #config variables
+        #config variables - only for case they're not configured
         self.setSelectWordsOnlyFromCurrentCategory(1)
         self.setFakeWordsCount(5)
         self.setQuizzLength(3)
-        self.setSelectedCategory('')       #just in case no category is selected
-        
-        
+        self.setSelectedCategory('')
     def quizzStart(self):
         #Starting the quizz
         self.quizzReset()
@@ -63,8 +62,7 @@ class NJQuizz:
         self.quizz_running = 0
         self.category_is_selected = 0
         self.word_is_picking = 0
-        self.score = 0
-        
+        self.score = 0    
     def quizzStartingDialog(self):
         print(".___________________.")
         print("|Starting the quizz |")
@@ -81,13 +79,13 @@ class NJQuizz:
             self.quizzStartingDialog()
             print("|Avaiable categories: ")
             category_counter = 1
-            for category in self.getCategories():
+            for category in self.getUniqueCategories():
                 print(str(category_counter)+": "+category+", ")
                 category_counter+=1
             try:
                 selected_category = int(input("Zvolená kategorie: "))-1 # -1 pro shift pole
-                if selected_category < len(self.getCategories()) and selected_category >= 0:
-                    self.setSelectedCategory(self.getCategories()[int(selected_category)])
+                if selected_category < len(self.getUniqueCategories()) and selected_category >= 0:
+                    self.setSelectedCategory(self.getUniqueCategories()[int(selected_category)])
                     self.category_is_selected = 1
                 else:
                     print("Out of range")
@@ -98,6 +96,7 @@ class NJQuizz:
     def userQuizParametersSelect(self):
         self.quizz_length_is_picking = 1
         while self.quizz_length_is_picking:
+            os.system('cls')
             try:
                 answer = int(input("Zvol délku quizu: "))
                 if answer >= 0:
@@ -106,26 +105,23 @@ class NJQuizz:
                 else:
                     print("Out of range")
                     time.sleep(0.5)
-                    self.quizzCurrentWordPickingDialog()
             except:
                 print("Neplatný vstup")
                 time.sleep(0.5)
-                self.quizzCurrentWordPickingDialog()
         self.fake_words_count_is_picking = 1
         while self.fake_words_count_is_picking:
+            os.system('cls')
             try:
-                answer = int(input("Počet fake slov: "))-1
+                answer = int(input("Počet fake slov (min 2): "))-1
                 if answer >= 2:
                     self.setFakeWordsCount(answer)
                     self.fake_words_count_is_picking = 0
                 else:
                     print("Out of range")
                     time.sleep(0.5)
-                    self.quizzCurrentWordPickingDialog()
             except:
                 print("Neplatný vstup")
                 time.sleep(0.5)
-                self.quizzCurrentWordPickingDialog()
     def userSelectRightWords(self):
         while self.word_is_picking:
             try:
@@ -148,13 +144,19 @@ class NJQuizz:
             self.reduced_excel = self.myReader.excel
         else:    
             self.reduced_excel = self.myReader.excel.query('Kategorie == @self.getSelectedCategory()')
-    def getCategories(self):
+    def setCategories(self):
         #Gets all unique categories - nan filtered
         out = []
         for att in self.myReader.getCategories().unique():
             if type(att)==str:
-                out.append(att)        
-        return out
+                out.append(att)
+        self.categories = out
+    def getUniqueCategories(self):
+        return self.categories
+    def loadExcel(self):
+        #Load all words from excel
+        self.myReader = NJReader()
+        self.setCategories()
     #Config methods
     def setSelectedCategory(self, category):
         self.selected_category: str = category
@@ -162,11 +164,16 @@ class NJQuizz:
         return self.selected_category
     def setFakeWordsCount(self, count):
         self.fake_words_count: int = count
+    def getFaceWordsCount(self):
+        return self.fake_words_count
     def setSelectWordsOnlyFromCurrentCategory(self, boo):
         self.select_words_only_from_current_category: bool = boo
+    def getSelectWordsOnlyFromCurrentCategory(self):
+        return self.select_words_only_from_current_category
     def setQuizzLength(self, length):
         self.quizz_length: int = length
-    
+    def getQuizzLength(self):
+        return self.quizz_length
 
 Quizz = NJQuizz()
 Quizz.quizzStart()
