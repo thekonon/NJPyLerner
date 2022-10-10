@@ -3,27 +3,28 @@ import numpy as np
 import os
 import time
 class NJQuizz:
+    #Quizz control
     def __init__(self):
         #Load all words from excel
         self.loadExcel()
         
         #config variables - only for case they're not configured
-        self.setSelectWordsOnlyFromCurrentCategory(1)
+        self.setSelectWordsOnlyFromCurrentCategory(0)
         self.setFakeWordsCount(5)
-        self.setQuizzLength(3)
+        self.setQuizzLength(10)
         self.setSelectedCategory('')
     def quizzStart(self):
         #Starting the quizz
         self.quizzReset()
         self.quizz_running = 1
-        self.userSelectCategory()       #user category of quizz selection
-        self.userQuizParametersSelect() #Quizz config settings - from user
+        #Those can be uncommented - default values from __init__ are used
+        # self.userSelectCategory()       #user category of quizz selection
+        # self.userQuizParametersSelect() #Quizz config settings - from user
+        
         self.setReducedExcel()          #setting reduced excel - table with only right category
         
         #setting up vars for quizz - random permutation of selected category
-        self.words_order = np.random.permutation(np.array(range(self.reduced_excel.shape[0]-1)))
-        self.words_order = self.words_order[:self.quizz_length] #cutting the list
-        print(self.words_order)
+        self.words_order = np.random.permutation(self.getCurrentTotalWordsCount()-1)[:self.quizz_length]
         
         for index in self.words_order:
             self.current_czech_word = self.reduced_excel.Ceske_slovo.iloc[index].replace('\xa0',' ')
@@ -63,16 +64,8 @@ class NJQuizz:
         self.category_is_selected = 0
         self.word_is_picking = 0
         self.score = 0    
-    def quizzStartingDialog(self):
-        print(".___________________.")
-        print("|Starting the quizz |")
-        print("*"+chr(8254)*19+"*")
-    def quizzCurrentWordPickingDialog(self):
-        os.system('cls')
-        self.printScore()
-        print("Přelož: ", self.current_czech_word)
-        for i in range(len(self.select_right_word_from_list)):
-            print(i+1, ": ", self.select_right_word_from_list[i])
+    
+    #User prompts
     def userSelectCategory(self):
         while not self.category_is_selected:
             os.system('cls')
@@ -137,8 +130,22 @@ class NJQuizz:
                 print("Neplatný vstup")
                 time.sleep(0.5)
                 self.quizzCurrentWordPickingDialog()
+                
+    #Printing methods
+    def quizzCurrentWordPickingDialog(self):
+        os.system('cls')
+        self.printScore()
+        print("Přelož: ", self.current_czech_word)
+        for i in range(len(self.select_right_word_from_list)):
+            print(i+1, ": ", self.select_right_word_from_list[i])
+    def quizzStartingDialog(self):
+        print(".___________________.")
+        print("|Starting the quizz |")
+        print("*"+chr(8254)*19+"*")
     def printScore(self):
         print("Aktuální score: ", self.score, " / ", self.quizz_length)
+   
+    #Data manipulation
     def setReducedExcel(self):
         if self.getSelectedCategory() == '':
             self.reduced_excel = self.myReader.excel
@@ -157,6 +164,11 @@ class NJQuizz:
         #Load all words from excel
         self.myReader = NJReader()
         self.setCategories()
+    def getTotalWordsCount(self):
+        return self.myReader.excel.shape[0]
+    def getCurrentTotalWordsCount(self):
+        return self.reduced_excel.shape[0]
+    
     #Config methods
     def setSelectedCategory(self, category):
         self.selected_category: str = category
