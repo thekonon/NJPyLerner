@@ -2,6 +2,7 @@ from NJReader import NJReader
 import numpy as np
 import os
 import time
+import keyboard
 class NJQuizz:
     #Quizz control
     def __init__(self):
@@ -40,12 +41,11 @@ class NJQuizz:
                     self.select_right_word_from_list.append(fake_word)
                     
             #List scramble
-            self.quizzCurrentWordPickingDialog()
             self.select_right_word_from_list = [iter.replace('\xa0',' ') for iter in self.select_right_word_from_list]
             self.select_right_word_from_list = np.unique(np.random.permutation(self.select_right_word_from_list)).tolist()
-            self.quizzCurrentWordPickingDialog()
-            self.quizzCurrentWordPickingDialog()
+            
             self.word_is_picking = 1
+            self.quizzCurrentWordPickingDialog()
             self.userSelectRightWords()
             if self.select_right_word_from_list[self.picked_answer] == self.current_german_word:
                 print("Gratulace!")
@@ -53,7 +53,12 @@ class NJQuizz:
                 time.sleep(1)
             else:
                 print("Nahh right was: ", self.current_german_word)
-                time.sleep(1)
+                print("press any key for continiue")
+                time.sleep(0.1)
+                while True:
+                    if keyboard.read_key()!='':
+                        break
+                        time.sleep(0.1)
         os.system('cls')
         self.printScore()
         if self.score == self.quizz_length:
